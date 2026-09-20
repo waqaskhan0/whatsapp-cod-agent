@@ -144,8 +144,14 @@ Git Bash:
 WA_PHONE_NUMBER_ID=123456789012345 WA_TOKEN=EAAG... SERVICE_TOKEN=any-random-string npx n8n
 ```
 
-If `$env` expressions come back empty, also set
-`N8N_BLOCK_ENV_ACCESS_IN_NODE=false`.
+**n8n 2.x blocks `$env` in expressions by default.** The workflows read
+`SERVICE_TOKEN`, `WA_TOKEN` and `WA_PHONE_NUMBER_ID` that way, so you must also
+set `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` or every node using them fails with
+`access to env vars denied`:
+
+```
+$env:N8N_BLOCK_ENV_ACCESS_IN_NODE="false"; $env:WA_PHONE_NUMBER_ID="..."; $env:WA_TOKEN="EAA..."; $env:SERVICE_TOKEN="dev-secret-123"; n8n start
+```
 
 ---
 
@@ -291,6 +297,7 @@ delivery. Quote it honestly to clients rather than calling it free.
 | `(#131047) re-engagement message` | 24-hour window closed — use a template |
 | Free-text send rejected | Same. Customer must message you first |
 | Token stopped working | Temporary token expired; copy a new one |
+| `access to env vars denied` | n8n 2.x blocks `$env` by default - set `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` |
 | `$env` empty in n8n | Variables not set before n8n started |
 | Classify node connection refused | Wrong host — `localhost` vs `host.docker.internal` |
 
