@@ -1,0 +1,115 @@
+{
+  "name": "COD 01 - Order Received",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-order",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "183e0cd7-cb98-49d5-b52c-6d89161244d7",
+      "name": "New Order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "b67d27e2-895e-4f55-89a6-b0877a849b94"
+    },
+    {
+      "parameters": {
+        "jsCode": "const o = $json.body ?? $json;\nreturn [{\n  json: {\n    order_id: o.order_id,\n    customer_phone: String(o.customer_phone).replace(/[^0-9]/g, ''),\n    customer_name: o.customer_name ?? '',\n    order_total: o.order_total,\n    order_items: o.order_items ?? '',\n    status: 'AWAITING_CONFIRMATION',\n  },\n}];"
+      },
+      "id": "f60d71f8-46e7-4184-82d8-08ca6d6a3b17",
+      "name": "Normalize Order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $env.WA_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WA_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.customer_phone }}\",\n  \"type\": \"text\",\n  \"text\": { \"body\": \"Assalam o Alaikum! Aap ka order {{ $json.order_id }} ({{ $json.order_items }}) Rs {{ $json.order_total }} cash on delivery hai. Kya hum ise bhej dein?\" }\n}",
+        "options": {}
+      },
+      "id": "82427940-0084-482c-bfe3-753c1b339595",
+      "name": "Ask Customer to Confirm",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a4435bdb-05c4-4a43-8f5b-67e44507f85e",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "New Order": {
+      "main": [
+        [
+          {
+            "node": "Normalize Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Order": {
+      "main": [
+        [
+          {
+            "node": "Ask Customer to Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Customer to Confirm": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "active": false
+}

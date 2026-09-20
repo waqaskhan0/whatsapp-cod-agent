@@ -1,0 +1,4 @@
+.env
+errors.json
+__pycache__/
+cod.db

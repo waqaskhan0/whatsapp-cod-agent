@@ -1,0 +1,433 @@
+{
+  "name": "COD 02 - Reply Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-reply",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cbc79e5c-4199-4372-a225-0bebc2cd01db",
+      "name": "WhatsApp Reply Received",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -260,
+        300
+      ],
+      "webhookId": "a286ad84-560a-459f-9278-4fa853d1095b"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Meta posts status callbacks to the same webhook. Only inbound text\n// messages should continue; everything else stops here.\nconst value = $json.body?.entry?.[0]?.changes?.[0]?.value;\nconst msg = value?.messages?.[0];\nif (!msg || msg.type !== 'text') {\n  return [];\n}\nreturn [{\n  json: {\n    customer_phone: msg.from,\n    text: msg.text.body,\n    wa_message_id: msg.id,\n    received_at: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "5027efa3-7735-416b-9619-04ac996b5291",
+      "name": "Parse WhatsApp Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// STUB - replace with a Postgres node or a call to your order system.\n// Should return the order for this phone number that is awaiting confirmation.\nreturn [{\n  json: {\n    ...$json,\n    order_id: 'ORD-' + $json.customer_phone.slice(-4),\n    order_total: 2450,\n    order_items: '1x Lawn Suit (Medium, Blue)',\n    courier: 'PostEx',\n  },\n}];"
+      },
+      "id": "1a6b45a8-9d4d-49a7-816f-75b00b9920ff",
+      "name": "Look Up Order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/classify",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Service-Token",
+              "value": "={{ $env.SERVICE_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "order_id",
+              "value": "={{ $json.order_id }}"
+            },
+            {
+              "name": "customer_phone",
+              "value": "={{ $json.customer_phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d07d577f-e683-483a-93c1-a3c92a65893d",
+      "name": "Classify Intent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc86ae26-3098-484f-8cb5-fb2e5ecebf08",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "CONFIRM",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CONFIRM"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "db526094-4c05-4160-9218-f20f9995e0ff",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "CANCEL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CANCEL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca0f5dc0-6140-4038-a4e8-e91a8fded39c",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "RESCHEDULE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "RESCHEDULE"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "HUMAN"
+        }
+      },
+      "id": "7b511bc5-042c-4f2a-a2f8-906a6ac24de1",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        620,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "27169c30-2405-4907-8ecd-59458c1c4303",
+      "name": "Book Courier",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        860,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Courier was booked upstream. Close the loop with the customer.\nreturn [{\n  json: {\n    ...$json,\n    status: 'CONFIRMED',\n    reply_text: 'Shukriya! Aap ka order ' + $json.order_id\n      + ' confirm ho gaya hai. Cash on delivery: Rs ' + $json.order_total,\n  },\n}];"
+      },
+      "id": "dd30017c-8cbf-43cf-8049-5518f2b84f84",
+      "name": "Confirmed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Do NOT book the courier. This branch is the saved delivery -\n// the entire product exists for this path.\nreturn [{\n  json: {\n    ...$json,\n    status: 'CANCELLED',\n    rto_saved_pkr: 300,\n    reply_text: 'Theek hai, aap ka order ' + $json.order_id\n      + ' cancel kar diya gaya hai. Shukriya!',\n  },\n}];"
+      },
+      "id": "f19b826e-dc6f-4d2b-9866-ac22d73ff2b9",
+      "name": "Mark Cancelled",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Customer wants it, just not yet. Requeue rather than cancel.\nconst next = new Date();\nnext.setDate(next.getDate() + 1);\nreturn [{\n  json: {\n    ...$json,\n    status: 'RESCHEDULED',\n    retry_at: next.toISOString(),\n    reply_text: 'Koi baat nahi. Hum kal dobara confirm karne ke liye message karenge.',\n  },\n}];"
+      },
+      "id": "b33115e7-4fab-4b02-90c6-d7c0db90ce4e",
+      "name": "Queue Retry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Low confidence, ambiguous replies, questions, and change requests.\n// A human reading a message costs minutes; a failed delivery costs Rs 200-400.\nreturn [{\n  json: {\n    ...$json,\n    status: 'NEEDS_HUMAN',\n    reply_text: 'Hamari team abhi aap se rabta karegi. Shukriya!',\n  },\n}];"
+      },
+      "id": "49e3dfe3-945c-46ce-9b27-3f2ba633178a",
+      "name": "Human Inbox",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $env.WA_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WA_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.customer_phone }}\",\n  \"type\": \"text\",\n  \"text\": { \"body\": \"{{ $json.reply_text }}\" }\n}",
+        "options": {}
+      },
+      "id": "a4f65e59-4691-43c0-b279-99a686b423bb",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "85644e21-483d-48b7-96da-3d78aeb4afaa",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "WhatsApp Reply Received": {
+      "main": [
+        [
+          {
+            "node": "Parse WhatsApp Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse WhatsApp Payload": {
+      "main": [
+        [
+          {
+            "node": "Look Up Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Look Up Order": {
+      "main": [
+        [
+          {
+            "node": "Classify Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Intent": {
+      "main": [
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Book Courier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Cancelled",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Human Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Courier": {
+      "main": [
+        [
+          {
+            "node": "Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmed": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Cancelled": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Retry": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human Inbox": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Reply": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "active": false
+}

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COD Confirmation</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0:      #f4f4f1;
+    --surface-1:      #fcfcfb;
+    --border:         #e2e1dc;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #7a7975;
+    --series-1:       #2a78d6;
+    --grid:           #ebeae6;
+    --good:           #0ca30c;
+    --warning:        #fab219;
+    --serious:        #ec835a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-0:      #111110;
+      --surface-1:      #1a1a19;
+      --border:         #33332f;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #8f8e85;
+      --series-1:       #3987e5;
+      --grid:           #2a2a27;
+      --good:           #0ca30c;
+      --warning:        #fab219;
+      --serious:        #ec835a;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0:      #111110;
+    --surface-1:      #1a1a19;
+    --border:         #33332f;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #8f8e85;
+    --series-1:       #3987e5;
+    --grid:           #2a2a27;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+
+  header { display: flex; justify-content: space-between; align-items: baseline;
+           gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--text-muted); font-size: 13px; }
+
+  .card { background: var(--surface-1); border: 1px solid var(--border);
+          border-radius: 12px; padding: 20px; }
+
+  /* hero */
+  .hero { margin-bottom: 20px; }
+  .hero .label { color: var(--text-secondary); font-size: 13px;
+                 text-transform: uppercase; letter-spacing: 0.06em; }
+  .hero .value { font-size: clamp(40px, 9vw, 60px); font-weight: 650;
+                 letter-spacing: -0.03em; line-height: 1.05; margin: 6px 0 4px; }
+  .hero .note { color: var(--text-muted); font-size: 13px; }
+
+  /* tiles */
+  .tiles { display: grid; gap: 12px; margin-bottom: 20px;
+           grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  .tile .label { color: var(--text-secondary); font-size: 12px;
+                 text-transform: uppercase; letter-spacing: 0.06em; }
+  .tile .value { font-size: 28px; font-weight: 600; letter-spacing: -0.02em;
+                 margin-top: 6px; }
+  .tile .note { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+  /* bar chart */
+  h2 { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+  .chart-note { color: var(--text-muted); font-size: 12px; margin-bottom: 18px; }
+  .bars { display: grid; gap: 10px; }
+  .bar-row { display: grid; grid-template-columns: 116px 1fr 44px;
+             align-items: center; gap: 12px; }
+  .bar-label { color: var(--text-secondary); font-size: 13px; text-align: right;
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { background: var(--grid); border-radius: 0 4px 4px 0; height: 20px;
+               position: relative; cursor: default; }
+  .bar-fill { background: var(--series-1); height: 100%; border-radius: 0 4px 4px 0;
+              min-width: 2px; transition: width .3s ease; }
+  .bar-value { font-size: 13px; color: var(--text-secondary); }
+
+  /* tooltip */
+  #tip { position: fixed; pointer-events: none; opacity: 0; transition: opacity .1s;
+         background: var(--text-primary); color: var(--surface-1); font-size: 12px;
+         padding: 6px 9px; border-radius: 6px; white-space: nowrap; z-index: 10; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-weight: 500; color: var(--text-muted); font-size: 11px;
+       text-transform: uppercase; letter-spacing: 0.06em; padding: 0 10px 8px 0;
+       border-bottom: 1px solid var(--border); }
+  td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--border);
+       color: var(--text-secondary); vertical-align: top; }
+  td.msg { color: var(--text-primary); }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+          color: var(--text-primary); white-space: nowrap; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .grid2 { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 860px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  .empty { color: var(--text-muted); font-size: 13px; padding: 20px 0;
+           text-align: center; }
+  code { background: var(--grid); padding: 1px 5px; border-radius: 4px;
+         font-size: 12px; }
+  .mt { margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>COD Order Confirmation</h1>
+      <div class="sub">WhatsApp replies classified before dispatch</div>
+    </div>
+    <div class="sub" id="meta">connecting…</div>
+  </header>
+
+  <section class="card hero">
+    <div class="label">Estimated saved</div>
+    <div class="value" id="saved">—</div>
+    <div class="note" id="saved-note"></div>
+  </section>
+
+  <section class="tiles">
+    <div class="card tile">
+      <div class="label">Replies handled</div>
+      <div class="value" id="total">—</div>
+      <div class="note" id="total-note"></div>
+    </div>
+    <div class="card tile">
+      <div class="label">Handled automatically</div>
+      <div class="value" id="auto">—</div>
+      <div class="note" id="auto-note"></div>
+    </div>
+    <div class="card tile">
+      <div class="label">Needs a person</div>
+      <div class="value" id="human">—</div>
+      <div class="note">waiting in the inbox</div>
+    </div>
+    <div class="card tile">
+      <div class="label">Cancelled before dispatch</div>
+      <div class="value" id="cancels">—</div>
+      <div class="note" id="cancel-note"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Replies by intent</h2>
+    <div class="chart-note">What customers actually said, since the service started.</div>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <div class="grid2 mt">
+    <section class="card">
+      <h2>Needs a person</h2>
+      <div class="chart-note">Ambiguous replies, questions and change requests.</div>
+      <div id="inbox"></div>
+    </section>
+
+    <section class="card">
+      <h2>Recent decisions</h2>
+      <div class="chart-note">Every reply, newest first.</div>
+      <div id="recent"></div>
+    </section>
+  </div>
+</div>
+
+<div id="tip" role="status"></div>
+
+<script>
+const tip = document.getElementById('tip');
+const fmt = n => n.toLocaleString('en-PK');
+const pct = n => (n * 100).toFixed(0) + '%';
+
+// Status colors carry an explicit label beside them, never meaning alone.
+const STATUS = {
+  CONFIRM:        'var(--good)',
+  CANCEL:         'var(--series-1)',
+  RESCHEDULE:     'var(--warning)',
+  ADDRESS_CHANGE: 'var(--serious)',
+  ORDER_CHANGE:   'var(--serious)',
+  QUESTION:       'var(--serious)',
+  UNCLEAR:        'var(--text-muted)',
+};
+
+function showTip(e, text) {
+  tip.textContent = text;
+  tip.style.opacity = '1';
+  const pad = 12;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  const r = tip.getBoundingClientRect();
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - pad;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - pad;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+const hideTip = () => { tip.style.opacity = '0'; };
+
+function renderBars(rows, total) {
+  const el = document.getElementById('bars');
+  if (!rows.length) { el.innerHTML = '<div class="empty">No replies yet.</div>'; return; }
+  const max = Math.max(...rows.map(r => r.n));
+  el.innerHTML = '';
+  for (const r of rows) {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML =
+      `<div class="bar-label">${r.intent}</div>` +
+      `<div class="bar-track"><div class="bar-fill" style="width:${(r.n / max * 100).toFixed(1)}%"></div></div>` +
+      `<div class="bar-value">${fmt(r.n)}</div>`;
+    const track = row.querySelector('.bar-track');
+    const share = total ? pct(r.n / total) : '0%';
+    track.addEventListener('mousemove', e => showTip(e, `${r.intent}: ${fmt(r.n)} replies (${share})`));
+    track.addEventListener('mouseleave', hideTip);
+    el.appendChild(row);
+  }
+}
+
+function pill(intent) {
+  return `<span class="pill"><span class="dot" style="background:${STATUS[intent] || 'var(--text-muted)'}"></span>${intent}</span>`;
+}
+
+function renderInbox(rows) {
+  const el = document.getElementById('inbox');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">Nothing waiting. Everything was handled automatically.</div>';
+    return;
+  }
+  el.innerHTML = '<table><thead><tr><th>Order</th><th>Customer said</th><th>Read as</th></tr></thead><tbody>' +
+    rows.map(r => `<tr>
+      <td>${r.order_id ?? '—'}</td>
+      <td class="msg">${escapeHtml(r.text)}</td>
+      <td>${pill(r.intent)}</td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+function renderRecent(rows) {
+  const el = document.getElementById('recent');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">No decisions yet. Send a reply through the workflow, ' +
+      'or post one to <code>/classify</code>.</div>';
+    return;
+  }
+  el.innerHTML = '<table><thead><tr><th>Customer said</th><th>Read as</th><th>Conf.</th></tr></thead><tbody>' +
+    rows.map(r => `<tr>
+      <td class="msg">${escapeHtml(r.text)}</td>
+      <td>${pill(r.intent)}</td>
+      <td>${r.confidence.toFixed(2)}</td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function refresh() {
+  try {
+    const d = await (await fetch('/stats')).json();
+
+    document.getElementById('saved').textContent = 'Rs ' + fmt(d.rto_saved_pkr);
+    document.getElementById('saved-note').textContent = d.cancelled
+      ? `Estimate: ${fmt(d.cancelled)} dispatches prevented × Rs ${fmt(d.rto_cost_pkr)} per failed delivery.`
+      : 'No cancellations caught yet.';
+
+    document.getElementById('total').textContent = fmt(d.total);
+    document.getElementById('total-note').textContent =
+      d.total ? `avg confidence ${d.avg_confidence.toFixed(2)}` : 'waiting for replies';
+
+    document.getElementById('auto').textContent = d.total ? pct(d.auto_rate) : '—';
+    document.getElementById('auto-note').textContent =
+      `${fmt(d.auto_handled)} of ${fmt(d.total)} · threshold ${d.auto_threshold}`;
+
+    document.getElementById('human').textContent = fmt(d.escalated);
+
+    document.getElementById('cancels').textContent = fmt(d.cancelled);
+    document.getElementById('cancel-note').textContent =
+      d.total ? `${pct(d.cancel_rate)} of replies` : '';
+
+    renderBars(d.by_intent, d.total);
+    renderInbox(d.inbox);
+    renderRecent(d.recent);
+
+    document.getElementById('meta').textContent =
+      'updated ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById('meta').textContent = 'service unreachable';
+  }
+}
+
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>

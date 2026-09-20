@@ -1,0 +1,94 @@
+text,label,note
+"han bhai confirm hai",CONFIRM,
+"ji bilkul bhej dein",CONFIRM,
+"haan g",CONFIRM,
+"ok",CONFIRM,bare-ok
+"confirm",CONFIRM,
+"theek hai bhej do",CONFIRM,
+"yes please send it",CONFIRM,english
+"jee han",CONFIRM,
+"bhej dein",CONFIRM,
+"han",CONFIRM,single-word
+"ok kr dein",CONFIRM,
+"done bhai",CONFIRM,
+"confirmed",CONFIRM,
+"g han chahiye",CONFIRM,
+"bilkul",CONFIRM,
+"haan haan bhejo",CONFIRM,
+"yes confirm kar dein",CONFIRM,code-switch
+"جی ہاں بھیج دیں",CONFIRM,urdu-script
+"ha ji",CONFIRM,typo
+"okay send",CONFIRM,
+"mujhe chahiye hai",CONFIRM,
+"order confirm hai mera",CONFIRM,
+"nahi chahiye",CANCEL,
+"cancel kr dein",CANCEL,
+"mujhe nai chahiye ab",CANCEL,
+"order cancel",CANCEL,
+"nhi bhai rehne dein",CANCEL,
+"mera order cancel kardo",CANCEL,
+"not interested",CANCEL,english
+"nahi",CANCEL,single-word
+"cancel",CANCEL,
+"ab nahi lena",CANCEL,
+"maine order nahi kiya",CANCEL,fake-order
+"ye order mera nahi hai",CANCEL,fake-order
+"galti se ho gaya tha",CANCEL,
+"rehne dein",CANCEL,
+"mera irada change ho gaya",CANCEL,
+"nai chahiye shukriya",CANCEL,
+"نہیں چاہیے",CANCEL,urdu-script
+"mujhe ye product nahi chahiye",CANCEL,
+"kal bhej dena",RESCHEDULE,
+"abhi nahi baad mein",RESCHEDULE,
+"agle hafte bhejain",RESCHEDULE,
+"main city se bahar hun 3 din baad bhejna",RESCHEDULE,
+"eid ke baad bhej dena",RESCHEDULE,
+"is week nahi next week",RESCHEDULE,
+"abhi ghar pe koi nahi hai baad me",RESCHEDULE,
+"sunday ko bhejain",RESCHEDULE,
+"2 din baad",RESCHEDULE,
+"thora late bhejna",RESCHEDULE,
+"salary aane ke baad lunga",RESCHEDULE,
+"address change karna hai",ADDRESS_CHANGE,
+"naya address note karein",ADDRESS_CHANGE,
+"wo purana address hai",ADDRESS_CHANGE,
+"office pe bhej dein ghar pe nahi",ADDRESS_CHANGE,
+"address ghalat likha gaya hai",ADDRESS_CHANGE,
+"mera address update kr dein",ADDRESS_CHANGE,
+"house number galat hai",ADDRESS_CHANGE,
+"ab main shift ho gaya hun naya pata de raha hun",ADDRESS_CHANGE,
+"delivery dusre address pe chahiye",ADDRESS_CHANGE,
+"size large kr dein",ORDER_CHANGE,
+"colour black chahiye",ORDER_CHANGE,
+"2 pieces kr dein",ORDER_CHANGE,
+"medium ki jagah large bhejna",ORDER_CHANGE,
+"quantity barha dein",ORDER_CHANGE,
+"dusra design chahiye",ORDER_CHANGE,
+"ek aur piece add kr dein",ORDER_CHANGE,
+"size small karwana hai",ORDER_CHANGE,
+"kitne ka hai",QUESTION,
+"delivery charges kitne hain",QUESTION,
+"kitne din me aayega",QUESTION,
+"original hai ya copy",QUESTION,
+"return policy kya hai",QUESTION,
+"total kitna banega",QUESTION,
+"cash on delivery hai na",QUESTION,
+"warranty hai is pe",QUESTION,
+"picture bhej dein product ki",QUESTION,
+"kya ye same hai jo website pe tha",QUESTION,
+"exchange ho sakta hai",QUESTION,
+"koi discount mil sakta hai",QUESTION,
+"hmm",UNCLEAR,
+"?",UNCLEAR,
+"k",UNCLEAR,ambiguous-k
+"dekhta hun",UNCLEAR,
+"...",UNCLEAR,
+"phir batata hun",RESCHEDULE,deferral
+"wait",UNCLEAR,
+"acha",UNCLEAR,acknowledgement-not-confirm
+"ji",UNCLEAR,ambiguous-ji
+"hello",UNCLEAR,
+"kon",QUESTION,asking-identity
+"aap kon ho",QUESTION,asking-identity
+"main sochta hun",UNCLEAR,
