@@ -46,7 +46,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.customer_phone }}\",\n  \"type\": \"text\",\n  \"text\": { \"body\": \"Assalam o Alaikum! Aap ka order {{ $json.order_id }} ({{ $json.order_items }}) Rs {{ $json.order_total }} cash on delivery hai. Kya hum ise bhej dein?\" }\n}",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.customer_phone }}\",\n  \"type\": \"template\",\n  \"template\": {\n    \"name\": \"order_confirmation\",\n    \"language\": {\n      \"code\": \"en\"\n    },\n    \"components\": [\n      {\n        \"type\": \"body\",\n        \"parameters\": [\n          {\n            \"type\": \"text\",\n            \"text\": \"{{ $json.order_id }}\"\n          },\n          {\n            \"type\": \"text\",\n            \"text\": \"{{ $json.order_items }}\"\n          },\n          {\n            \"type\": \"text\",\n            \"text\": \"{{ $json.order_total }}\"\n          }\n        ]\n      }\n    ]\n  }\n}",
         "options": {}
       },
       "id": "82427940-0084-482c-bfe3-753c1b339595",
@@ -56,7 +56,8 @@
       "position": [
         440,
         300
-      ]
+      ],
+      "notes": "Business-initiated messages MUST use an approved template. Create a template named 'order_confirmation' in Meta Business Manager with three {{n}} body variables: order id, items, total."
     },
     {
       "parameters": {

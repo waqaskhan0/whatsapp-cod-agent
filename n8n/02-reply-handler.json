@@ -279,6 +279,40 @@
         1520,
         300
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp-reply",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cb2039ab-b6bf-49ef-b2b4-802600524c51",
+      "name": "Webhook Verify (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -260,
+        660
+      ],
+      "webhookId": "ec7c23f6-0dd1-4b62-8da9-ff570f9fd355",
+      "notes": "Meta calls this once when you save the webhook URL."
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "ff9b5f45-fc4a-4e88-98cf-824c0b1befa2",
+      "name": "Return Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -40,
+        660
+      ],
+      "notes": "Echo hub.challenge as plain text or Meta rejects the webhook."
     }
   ],
   "connections": {
@@ -418,6 +452,17 @@
         [
           {
             "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Verify (GET)": {
+      "main": [
+        [
+          {
+            "node": "Return Challenge",
             "type": "main",
             "index": 0
           }
