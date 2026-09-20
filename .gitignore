@@ -1,4 +1,6 @@
 .env
+.env.local
+.ngrok-url
 errors.json
 __pycache__/
 cod.db

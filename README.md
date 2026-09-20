@@ -88,6 +88,29 @@ RESCHEDULE costs one extra WhatsApp message. Misreading CANCEL as CONFIRM costs 
 Rs 200-400 failed delivery. The prompt is biased toward escalating rather than
 confirming, and false CONFIRMs are reported separately from accuracy.
 
+## Running it
+
+One command, from the project root:
+
+```
+.\start.ps1
+```
+
+That opens three windows (classifier, n8n, tunnel), waits for each to come up,
+prints the dashboard and editor links, and tells you the public callback URL.
+
+`.\stop.ps1` shuts everything down.
+
+Secrets live in `.env.local` (gitignored) - copy `.env.local.example` and fill
+in your Meta token. The token expires every 24 hours during testing, so that
+file is usually the only thing you touch.
+
+**The script warns you when the tunnel URL changes.** ngrok's free plan issues a
+new hostname on every restart, and Meta keeps calling the old one until you
+update it in the app dashboard, which looks exactly like the integration being
+broken.
+
+
 ## Dashboard
 
 ```
