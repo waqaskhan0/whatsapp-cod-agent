@@ -25,6 +25,8 @@ class Reply(BaseModel):
     text: str
     order_id: str | None = None
     customer_phone: str | None = None
+    # WhatsApp's wamid. Supplying it makes this endpoint idempotent.
+    message_id: str | None = None
 
 
 def _check(token: str):
@@ -41,6 +43,19 @@ def health():
 def classify_reply(reply: Reply, x_service_token: str = Header(default="")):
     _check(x_service_token)
 
+    seen = store.find_by_message_id(reply.message_id)
+    if seen:
+        # A retry of a message already decided. Return the original decision
+        # unchanged rather than classifying (and charging) again.
+        return {
+            "decision_id": seen["id"], "order_id": seen["order_id"],
+            "customer_phone": seen["customer_phone"], "text": seen["text"],
+            "intent": seen["intent"], "confidence": seen["confidence"],
+            "reason": "duplicate delivery; returning original decision",
+            "auto": seen["confidence"] >= AUTO_THRESHOLD,
+            "action": seen["action"], "duplicate": True,
+        }
+
     result = classify(reply.text)
     auto = result["confidence"] >= AUTO_THRESHOLD
 
@@ -52,6 +67,7 @@ def classify_reply(reply: Reply, x_service_token: str = Header(default="")):
     decision_id = store.record(
         reply.order_id, reply.customer_phone, reply.text,
         result["intent"], result["confidence"], action,
+        message_id=reply.message_id,
     )
 
     return {
@@ -64,6 +80,7 @@ def classify_reply(reply: Reply, x_service_token: str = Header(default="")):
         "reason": result.get("reason", ""),
         "auto": auto,
         "action": action,
+        "duplicate": False,
     }
 
 

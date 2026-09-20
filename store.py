@@ -20,6 +20,7 @@ _conn.executescript(
     CREATE TABLE IF NOT EXISTS decisions (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
         ts             TEXT    NOT NULL,
+        message_id     TEXT,
         order_id       TEXT,
         customer_phone TEXT,
         text           TEXT    NOT NULL,
@@ -29,18 +30,30 @@ _conn.executescript(
         resolved       INTEGER NOT NULL DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS idx_decisions_ts ON decisions(ts);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_decisions_msgid
+        ON decisions(message_id) WHERE message_id IS NOT NULL;
     """
 )
 _conn.commit()
 
 
-def record(order_id, customer_phone, text, intent, confidence, action):
+def find_by_message_id(message_id):
+    """Meta retries webhook delivery until it gets a 2xx, so the same message
+    arrives repeatedly. Processing it twice could book a courier twice."""
+    if not message_id:
+        return None
+    rows = _rows("SELECT * FROM decisions WHERE message_id = ?", (message_id,))
+    return rows[0] if rows else None
+
+
+def record(order_id, customer_phone, text, intent, confidence, action,
+           message_id=None):
     with _lock:
         cur = _conn.execute(
-            "INSERT INTO decisions (ts, order_id, customer_phone, text, intent,"
-            " confidence, action) VALUES (?,?,?,?,?,?,?)",
-            (datetime.now(timezone.utc).isoformat(timespec="seconds"), order_id,
-             customer_phone, text, intent, float(confidence), action),
+            "INSERT INTO decisions (ts, message_id, order_id, customer_phone,"
+            " text, intent, confidence, action) VALUES (?,?,?,?,?,?,?,?)",
+            (datetime.now(timezone.utc).isoformat(timespec="seconds"), message_id,
+             order_id, customer_phone, text, intent, float(confidence), action),
         )
         _conn.commit()
         return cur.lastrowid

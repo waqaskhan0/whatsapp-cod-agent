@@ -5,7 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "whatsapp-reply",
-        "responseMode": "responseNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "id": "cbc79e5c-4199-4372-a225-0bebc2cd01db",
@@ -16,7 +16,8 @@
         -260,
         300
       ],
-      "webhookId": "a286ad84-560a-459f-9278-4fa853d1095b"
+      "webhookId": "a286ad84-560a-459f-9278-4fa853d1095b",
+      "notes": "Responds 200 as soon as Meta delivers. Never make Meta wait for downstream work - it retries on slow or failed responses."
     },
     {
       "parameters": {
@@ -71,6 +72,10 @@
             {
               "name": "customer_phone",
               "value": "={{ $json.customer_phone }}"
+            },
+            {
+              "name": "message_id",
+              "value": "={{ $json.wa_message_id }}"
             }
           ]
         },
@@ -270,19 +275,6 @@
     },
     {
       "parameters": {
-        "options": {}
-      },
-      "id": "85644e21-483d-48b7-96da-3d78aeb4afaa",
-      "name": "Respond",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [
-        1520,
-        300
-      ]
-    },
-    {
-      "parameters": {
         "httpMethod": "GET",
         "path": "whatsapp-reply",
         "responseMode": "responseNode",
@@ -442,17 +434,6 @@
         [
           {
             "node": "Send WhatsApp Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send WhatsApp Reply": {
-      "main": [
-        [
-          {
-            "node": "Respond",
             "type": "main",
             "index": 0
           }
