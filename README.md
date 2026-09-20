@@ -133,6 +133,15 @@ person, and must stay identical to the n8n switch - the dashboard's
 "needs a person" count is derived from it, so if the two drift the dashboard
 starts lying.
 
+## Deploying for a client
+
+The local setup above is for building and demoing. A client's system runs on a
+VPS instead - Docker, a real domain with automatic HTTPS, a non-expiring token,
+and automatic restart on reboot. Nobody logs in to start it.
+
+See `deploy/DEPLOY.md`. Infrastructure runs about $6/month.
+
+
 ## n8n
 
 See `n8n/README.md`. Two workflows, import both.

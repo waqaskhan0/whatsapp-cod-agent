@@ -4,3 +4,4 @@
 errors.json
 __pycache__/
 cod.db
+deploy/.env

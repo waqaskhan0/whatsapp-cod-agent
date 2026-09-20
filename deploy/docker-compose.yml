@@ -1,0 +1,87 @@
+# Production deployment: one VPS, three containers, runs unattended.
+#
+# Nobody logs in to start this. `restart: unless-stopped` brings everything back
+# after a reboot, a crash, or a power cut at the datacentre.
+#
+#   docker compose up -d
+#
+# Caddy gets HTTPS certificates automatically, so there is no ngrok and no URL
+# that changes. See DEPLOY.md.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      N8N_DOMAIN: ${N8N_DOMAIN}
+      DASH_DOMAIN: ${DASH_DOMAIN}
+      DASH_USER: ${DASH_USER}
+      DASH_PASSWORD_HASH: ${DASH_PASSWORD_HASH}
+    depends_on:
+      - n8n
+      - classifier
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: unless-stopped
+    environment:
+      # Public address. n8n builds webhook URLs from this, and Meta must be able
+      # to reach them.
+      N8N_HOST: ${N8N_DOMAIN}
+      N8N_PROTOCOL: https
+      N8N_PORT: 5678
+      WEBHOOK_URL: https://${N8N_DOMAIN}/
+      N8N_EDITOR_BASE_URL: https://${N8N_DOMAIN}/
+      N8N_PROXY_HOPS: 1
+
+      # n8n 2.x denies $env access in expressions by default, which breaks every
+      # node reading a token.
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+
+      # Consumed by the workflow's HTTP nodes.
+      WA_PHONE_NUMBER_ID: ${WA_PHONE_NUMBER_ID}
+      WA_TOKEN: ${WA_TOKEN}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+
+      GENERIC_TIMEZONE: ${TZ:-Asia/Karachi}
+      TZ: ${TZ:-Asia/Karachi}
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_RUNNERS_ENABLED: "true"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    expose:
+      - "5678"
+
+  classifier:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+      AUTO_THRESHOLD: ${AUTO_THRESHOLD:-0.80}
+      RTO_COST_PKR: ${RTO_COST_PKR:-300}
+      DB_PATH: /data/cod.db
+      TZ: ${TZ:-Asia/Karachi}
+    volumes:
+      - classifier_data:/data
+    # Not published to the internet. Only n8n and Caddy reach it, over the
+    # internal network, as http://classifier:8000
+    expose:
+      - "8000"
+
+volumes:
+  n8n_data:
+  classifier_data:
+  caddy_data:
+  caddy_config:

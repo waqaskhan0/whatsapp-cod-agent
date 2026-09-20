@@ -1,0 +1,15 @@
+# Caddy obtains and renews Let's Encrypt certificates automatically. This is
+# what replaces ngrok: a permanent HTTPS address that never changes.
+
+{$N8N_DOMAIN} {
+	reverse_proxy n8n:5678
+}
+
+# The seller's savings dashboard, behind a password. It shows customer phone
+# numbers and message text, so it must not be open to the internet.
+{$DASH_DOMAIN} {
+	basic_auth {
+		{$DASH_USER} {$DASH_PASSWORD_HASH}
+	}
+	reverse_proxy classifier:8000
+}
