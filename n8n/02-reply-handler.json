@@ -47,7 +47,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:8000/classify",
+        "url": "http://localhost:8000/classify",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -83,7 +83,8 @@
       "position": [
         400,
         300
-      ]
+      ],
+      "notes": "Running n8n in Docker? Change localhost to host.docker.internal so the container can reach the host."
     },
     {
       "parameters": {
