@@ -15,6 +15,21 @@ _lock = threading.Lock()
 _conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 _conn.row_factory = sqlite3.Row
 
+def _migrate():
+    """Bring an existing database up to the current schema.
+
+    CREATE TABLE IF NOT EXISTS does nothing to a table that already exists, so
+    new columns must be added explicitly. Deleting the database is not an option
+    once a seller has real order history in it.
+    """
+    have = {r[1] for r in _conn.execute("PRAGMA table_info(decisions)")}
+    if not have:
+        return  # fresh database; the CREATE below builds it correctly
+    if "message_id" not in have:
+        _conn.execute("ALTER TABLE decisions ADD COLUMN message_id TEXT")
+        _conn.commit()
+
+
 _conn.executescript(
     """
     CREATE TABLE IF NOT EXISTS decisions (
@@ -30,6 +45,12 @@ _conn.executescript(
         resolved       INTEGER NOT NULL DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS idx_decisions_ts ON decisions(ts);
+    """
+)
+_conn.commit()
+_migrate()
+_conn.executescript(
+    """
     CREATE UNIQUE INDEX IF NOT EXISTS idx_decisions_msgid
         ON decisions(message_id) WHERE message_id IS NOT NULL;
     """
