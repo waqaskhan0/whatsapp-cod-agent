@@ -47,7 +47,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:8000/classify",
+        "url": "http://127.0.0.1:8000/classify",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -84,7 +84,7 @@
         400,
         300
       ],
-      "notes": "Running n8n in Docker? Change localhost to host.docker.internal so the container can reach the host."
+      "notes": "Use 127.0.0.1, not localhost: Node resolves localhost to IPv6 ::1 while uvicorn listens on IPv4, giving ECONNREFUSED ::1:8000. In Docker use host.docker.internal instead."
     },
     {
       "parameters": {

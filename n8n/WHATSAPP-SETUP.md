@@ -122,10 +122,12 @@ Open workflow 02 → **Classify Intent** node → check the URL:
 
 | How you run n8n | URL |
 |---|---|
-| `npx n8n` (on your machine) | `http://localhost:8000/classify` |
+| directly on your machine | `http://127.0.0.1:8000/classify` |
 | Docker, service on host | `http://host.docker.internal:8000/classify` |
 
-The file ships with the Docker form. Change it if you used npx.
+**Use `127.0.0.1`, not `localhost`.** Node resolves `localhost` to IPv6 `::1`
+first, while uvicorn listens on IPv4 only, so `localhost` fails with
+`connect ECONNREFUSED ::1:8000` while `127.0.0.1` works.
 
 ### 11. Set environment variables
 
@@ -299,7 +301,8 @@ delivery. Quote it honestly to clients rather than calling it free.
 | Token stopped working | Temporary token expired; copy a new one |
 | `access to env vars denied` | n8n 2.x blocks `$env` by default - set `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` |
 | `$env` empty in n8n | Variables not set before n8n started |
-| Classify node connection refused | Wrong host — `localhost` vs `host.docker.internal` |
+| `ECONNREFUSED ::1:8000` | Node resolved `localhost` to IPv6 — use `127.0.0.1` |
+| Classify node connection refused | Wrong host — `127.0.0.1` vs `host.docker.internal` |
 
 ---
 
